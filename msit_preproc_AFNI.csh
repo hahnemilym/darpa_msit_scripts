@@ -32,7 +32,7 @@ set polort = A
 # the time duration D of the longest run: pnum = 1 + int(D/150)
 
 set study = msit
-set task = (${study}_bs)
+set task = (${study}_bsm)
 
 set do_anat = 'yes'
 set do_epi = 'no'
@@ -50,10 +50,11 @@ foreach subj (${subjs})
 
 cd $MSIT_DIR/${subj}/${task}
 set activeSubjectdirectory = `pwd`
-rm -r anat;
-rm -r func;
-mkdir anat;
-mkdir func;
+
+#rm -r anat;
+#rm -r func;
+#mkdir anat;
+#mkdir func;
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Anatomical preprocessing
@@ -119,7 +120,7 @@ if ( ${do_anat} == 'yes' ) then
 	#cp ${study}.${subj}.anat.sksp_MNI+tlrc* ${rootpth}/group/day1
 
 	echo "****************************************************************"
-	echo " creating an FSL segmentation "
+	echo " creating FSL segmentation "
 	echo "****************************************************************"
 	
 	# convert afni to nifti (previously skull stripped image)
@@ -131,19 +132,22 @@ if ( ${do_anat} == 'yes' ) then
 	-inset ${study}.${subj}.anat.sksp+orig.HEAD \
 	-prefix ${study}.${subj}.anat.sksp.nii
 
-
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-	# do GM,WM,CSF segmentation
+	# GM,WM,CSF segmentation
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 	fast \
-	-t 1 -n 3 -H .5 -B -b \
+	-t 1 \
+	-n 3 \
+	-H .5 \
+	-B -b \
 	--nopve \
 	-o ${study}.${subj}.anat \
 	${study}.${subj}.anat.sksp.nii
 
 	# move back to afni format
 	# NOTE: order of these commands is important. If you change, test first.
+	
 	#rm ${study}.${subj}.anat.seg.float+orig*
 
 	#FSL makes the file a .gz
@@ -206,8 +210,8 @@ if ( ${do_epi} == 'yes' ) then
 	#matlab -nodesktop -nosplash -r "expand_nii_bandit_task;exit"
 
 	3dAFNItoNIFTI \
-	-prefix ${activeSubjectdirectory}/${study}.${subj}.${task}.nii \
-	${activeSubjectdirectory}/concat_${study}.${subj}.${task}.+orig
+	-prefix ${study}.${subj}.${task}.nii \
+	concat_${study}.${subj}.${task}.+orig
 
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 	#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
@@ -589,7 +593,7 @@ if ( ${do_epi} == 'yes' ) then
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#	
 	
-cd ${activeSubjectdirectory}
+cd ${DIR}_001/users/DARPA-Scripts/tutorials/darpa_pipelines_EH/darpa_msit_scripts
 
 # end loop: do_epi 
 endif
