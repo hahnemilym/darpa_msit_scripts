@@ -11,7 +11,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 # Local Directory
-setenv DIR /autofs/space/lilli_004/users/DARPA-MSIT/msit
+setenv DIR /autofs/space/lilli_004/users/DARPA-MSIT
 
 # Project Directory
 setenv MSIT_DIR $DIR/msit
@@ -23,10 +23,10 @@ setenv SUBJECTS_DIR $MSIT_DIR/subjs
 setenv PARAMS_DIR $MSIT_DIR/bsm_params
 
 # Analyses Directory
-setenv ANALYSIS_DIR $MSIT_DIR/scripts/archive
+setenv ANALYSIS_DIR $MSIT_DIR/scripts
 
 # Subjects List
-#setenv SUBJECT_LIST $PARAMS_DIR/subjects_list_mmddyy.txt
+setenv SUBJECT_LIST $PARAMS_DIR/subjects_list_01-12-19.txt
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define parameters
@@ -60,11 +60,11 @@ set do_epi = 'yes'
 # Initialize subject(s) environment
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
-#set subjects = ($SUBJECT_LIST)
-#foreach SUBJECT ( `cat $subjects` )
-set subjects = (test_001)
+set subjects = ($SUBJECT_LIST)
+foreach subj ( `cat $subjects` )
 
-foreach subj ($subjects)
+#set subjects = (test_001)
+#foreach subj ($subjects)
 
 setenv DATA_DIR $SUBJECTS_DIR/${subj}/${task}
 

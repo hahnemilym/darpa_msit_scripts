@@ -20,7 +20,7 @@ setenv PARAMS_DIR $MSIT_DIR/bsm_params/
 setenv ANALYSIS_DIR $MSIT_DIR/scripts
 
 # Subjects List
-setenv SUBJECT_LIST $PARAMS_DIR/subjects_list_01-10-19.txt
+setenv SUBJECT_LIST $PARAMS_DIR/subjects_list_01-12-19.txt
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 # Define parameters
