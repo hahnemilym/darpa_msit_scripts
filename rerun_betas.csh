@@ -4,72 +4,105 @@
 ## Configure parameters
 ##----------------------------------##
 
-setenv subjid `cat subjidall.txt` 
+setenv SUBJECTS_DIR /autofs/space/lilli_001/users/DARPA-Recons;
+setenv ANALYSIS_DIR /autofs/space/lilli_004/users/DARPA-MSIT;
+setenv SCRIPTS_DIR /autofs/space/lilli_001/users/DARPA-Scripts/tutorials/darpa_pipelines_EH/darpa_msit_scripts;
+setenv A_DIR $ANALYSIS_DIR/Analyses_I-C/${group_analysis}.05.$hemi/con.txt
 
-setenv SUBJECTS_DIR /autofs/space/lilli_004/users/DARPA-MSIT;
+setenv group 'hc'
+setenv sig_file 'cache.th30.pos.sig.cluster.mgh'
 
-set hemi = ('lh','rh')
-set region = 'dACC'
-set fsd= 'msit_001'
-set indiv_analysis_dir = 'beta_dir'
-set contrast = 'I-C'
-set fsaverage = 'fsaverage1'
+setenv group_analysis 'msit_I-C.group-analysis'
 
-##----------------------------------##
-## Loop through labels and subjects
-##----------------------------------##
-
-foreach h ($hemi)
-
-setenv labels `cat labels_$hemi.txt`
-labels = cat `labels_$h.txt` 
-
-foreach l ($labels)
+setenv hemisphere 'lh'
+setenv fsd 'msit_001'
+setenv contrast 'I-C'
 
 ##----------------------------------##
-## Convert label to *.mgh file
+## Cluster specification (OPTIONAL)
 ##----------------------------------##
+
+#mri_surfcluster \
+#--in $group_analysis.05.$space \
+#--hemi lh \
+#--surf fsaverage \
+#--thmin 1.5 \
+#--thmax 10 \
+
+echo "*********************************"
+echo "Loop through hemispheres"
+echo "*********************************"
+
+foreach hemi ($hemisphere)
+
+echo "*********************************"
+echo "Set labels list"
+echo "*********************************"
+
+#setenv labels `cat labels_$hemi.txt`
+#labels = cat `labels_$hemi.txt`
+
+setenv subject fsaverage_temp
+
+setenv labels_list dACC
+
+echo "*********************************"
+echo "Loop through labels"
+echo "*********************************"
+
+foreach label ($labels_list)
+
+echo "*********************************"
+echo "Convert label to *.mgh file"
+echo "*********************************"
 		
 mri_label2label \
---s $fsaverage1 \
+--s fsaverage \
 --regmethod surface \
---hemi $h \
---srclabel $l \
---trglabel $SUBJECTS_DIR/${fsaverage}/label/junk.label \
---outmask $SUBJECTS_DIR/${fsaverage}/label/$l.mgh
+--hemi $hemi \
+--srclabel $A_DIR/${label}_${hemi}.label \
+--trglabel $A_DIR/${subject}.${label}_${hemi}.label \
+--outmask $A_DIR/${subject}.${label}_${hemi}_mask.mgh
 
-##----------------------------------##
-## Smooth label (necessary, albeit 
-## 2mm negligible in FS space)
-##----------------------------------##
+echo "*********************************"
+echo "Smooth label (necessary, albeit"
+echo "2mm negligible in FS space)"
+echo "*********************************"
+
 mris_fwhm \
---i $SUBJECTS_DIR/${fsaverage}/label/$l.mgh \
+--i $A_DIR/${subject}.${label}_${hemi}_mask.mgh \
 --fwhm 2 \
 --smooth-only \
---o $SUBJECTS_DIR/${fsaverage}/label/$l.smooth.mgh \
---s fsaverage1 \
---hemi $h
+--o $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm.mgh \
+--s fsaverage \
+--hemi $hemi
 
-##----------------------------------##
-## Binarize label mask (not automatic)
-##----------------------------------##
+echo "*********************************"
+echo "Binarize label mask (not automatic)"
+echo "*********************************"
+
 mri_binarize \
---i $SUBJECTS_DIR/${fsaverage}/label/$l.smooth.mgh \
---o $SUBJECTS_DIR/${fsaverage}/label/$l.smooth.b.mgh \
+--i $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm.mgh \
+--o $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm_binary.mgh \
 --min 10e-10
 
-##----------------------------------##
-## Extract betas
-## - output from --avgwf flag file 
-## contains all all subjects' beta 
-## values in order of subjidall.txt
-##----------------------------------##
+echo "*********************************"
+echo "Extract betas"
+echo "Output from --avgwf output contains"
+echo "all subjects' beta values (in order" 
+echo "of subjidall.txt)"
+echo "*********************************"
+
 mri_segstats \
---i second_level/${region}.surf.$h/${region}_surf/ces.nii.gz \
+--i $A_DIR/${sig_file} \
 --ctab $FREESURFER_HOME/FreeSurferColorLUT.txt \
---avgwf ${h}_avgwf_$l.dat \
---seg $SUBJECTS_DIR/${fsaverage}/label/$l.smooth.b.mgh \
+--avgwf $A_DIR/${hemi}_avgwf_$label.dat \
+--seg $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm_binary.mgh \
 --excludeid 0
+
+#tksurfer fsaverage lh inflated -annot cache.th30.pos.sig.ocn.annot -overlay cache.th30.pos.sig.ocn.mgh
+
+cd $SCRIPTS_DIR
 
 ## End hemi loop
 end 
