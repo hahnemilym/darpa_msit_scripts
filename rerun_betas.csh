@@ -7,16 +7,19 @@
 setenv SUBJECTS_DIR /autofs/space/lilli_001/users/DARPA-Recons;
 setenv ANALYSIS_DIR /autofs/space/lilli_004/users/DARPA-MSIT;
 setenv SCRIPTS_DIR /autofs/space/lilli_001/users/DARPA-Scripts/tutorials/darpa_pipelines_EH/darpa_msit_scripts;
-setenv A_DIR $ANALYSIS_DIR/Analyses_I-C/${group_analysis}.05.$hemi/con.txt
 
-setenv group 'hc'
-setenv sig_file 'cache.th30.pos.sig.cluster.mgh'
+setenv group hc
+setenv sig_file cache.th30.pos.sig.cluster.mgh
 
-setenv group_analysis 'msit_I-C.group-analysis'
+## HC group dir
+#setenv group_analysis msit_I-C.group-analysis
+## PTS group dir
+setenv group_analysis msit_I-C.group-analysis.pts
 
-setenv hemisphere 'lh'
-setenv fsd 'msit_001'
-setenv contrast 'I-C'
+setenv hemisphere rh
+setenv fsd msit_001
+setenv contrast I-C
+setenv subject fsaverage_temp
 
 ##----------------------------------##
 ## Cluster specification (OPTIONAL)
@@ -36,21 +39,25 @@ echo "*********************************"
 foreach hemi ($hemisphere)
 
 echo "*********************************"
-echo "Set labels list"
+echo "Specify analysis dir"
 echo "*********************************"
 
-#setenv labels `cat labels_$hemi.txt`
-#labels = cat `labels_$hemi.txt`
-
-setenv subject fsaverage_temp
-
-setenv labels_list dACC
+setenv A_DIR $ANALYSIS_DIR/Analyses_I-C/${group_analysis}.01.$hemi/con.txt;
 
 echo "*********************************"
 echo "Loop through labels"
 echo "*********************************"
+#setenv labels `cat labels_$hemi.txt`
+#labels = cat `labels_$hemi.txt`
 
-foreach label ($labels_list)
+## For rh ONLY, HCs
+#foreach label (dlPFC)
+
+## For both lh rh, HCs
+#foreach label (dACC)
+
+## for rh ONLY, PTs
+foreach label (InfParietal SupParietal)
 
 echo "*********************************"
 echo "Convert label to *.mgh file"
@@ -60,9 +67,9 @@ mri_label2label \
 --s fsaverage \
 --regmethod surface \
 --hemi $hemi \
---srclabel $A_DIR/${label}_${hemi}.label \
---trglabel $A_DIR/${subject}.${label}_${hemi}.label \
---outmask $A_DIR/${subject}.${label}_${hemi}_mask.mgh
+--srclabel $A_DIR/${hemi}_${label}.label \
+--trglabel $A_DIR/${subject}.${hemi}_${label}.label \
+--outmask $A_DIR/${subject}.${hemi}_${label}_mask.mgh
 
 echo "*********************************"
 echo "Smooth label (necessary, albeit"
@@ -70,10 +77,10 @@ echo "2mm negligible in FS space)"
 echo "*********************************"
 
 mris_fwhm \
---i $A_DIR/${subject}.${label}_${hemi}_mask.mgh \
+--i $A_DIR/${subject}.${hemi}_${label}_mask.mgh \
 --fwhm 2 \
 --smooth-only \
---o $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm.mgh \
+--o $A_DIR/${subject}.${hemi}_${label}_mask_2fwhm.mgh \
 --s fsaverage \
 --hemi $hemi
 
@@ -82,8 +89,8 @@ echo "Binarize label mask (not automatic)"
 echo "*********************************"
 
 mri_binarize \
---i $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm.mgh \
---o $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm_binary.mgh \
+--i $A_DIR/${subject}.${hemi}_${label}_mask_2fwhm.mgh \
+--o $A_DIR/${subject}.${hemi}_${label}_mask_2fwhm_binary.mgh \
 --min 10e-10
 
 echo "*********************************"
@@ -97,7 +104,7 @@ mri_segstats \
 --i $A_DIR/${sig_file} \
 --ctab $FREESURFER_HOME/FreeSurferColorLUT.txt \
 --avgwf $A_DIR/${hemi}_avgwf_$label.dat \
---seg $A_DIR/${subject}.${label}_${hemi}_mask_2fwhm_binary.mgh \
+--seg $A_DIR/${subject}.${hemi}_${label}_mask_2fwhm_binary.mgh \
 --excludeid 0
 
 #tksurfer fsaverage lh inflated -annot cache.th30.pos.sig.ocn.annot -overlay cache.th30.pos.sig.ocn.mgh
